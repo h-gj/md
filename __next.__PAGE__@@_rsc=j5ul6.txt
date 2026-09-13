@@ -1,0 +1,506 @@
+1:"$Sreact.fragment"
+2:I[26555,["/_next/static/chunks/0ht8k-ryi6zs4.js","/_next/static/chunks/145kb~xvxzamz.js","/_next/static/chunks/0zrv6s8pw28rd.js","/_next/static/chunks/0o2qzpnrkc_7h.js","/_next/static/chunks/0hz~w0zuwuar5.js","/_next/static/chunks/0we2jzv7udw6p.js","/_next/static/chunks/07tm~3kwd6_~g.js"],"TauriRedirect"]
+3:I[95921,["/_next/static/chunks/0ht8k-ryi6zs4.js","/_next/static/chunks/145kb~xvxzamz.js","/_next/static/chunks/0zrv6s8pw28rd.js","/_next/static/chunks/0o2qzpnrkc_7h.js","/_next/static/chunks/0hz~w0zuwuar5.js","/_next/static/chunks/0we2jzv7udw6p.js","/_next/static/chunks/07tm~3kwd6_~g.js"],"LandingHeader"]
+4:I[37115,["/_next/static/chunks/0ht8k-ryi6zs4.js","/_next/static/chunks/145kb~xvxzamz.js","/_next/static/chunks/0zrv6s8pw28rd.js","/_next/static/chunks/0o2qzpnrkc_7h.js","/_next/static/chunks/0hz~w0zuwuar5.js","/_next/static/chunks/0we2jzv7udw6p.js","/_next/static/chunks/07tm~3kwd6_~g.js"],"ReadmeEditor"]
+10:I[60163,["/_next/static/chunks/0ht8k-ryi6zs4.js","/_next/static/chunks/145kb~xvxzamz.js","/_next/static/chunks/0zrv6s8pw28rd.js","/_next/static/chunks/0o2qzpnrkc_7h.js","/_next/static/chunks/0hz~w0zuwuar5.js","/_next/static/chunks/0we2jzv7udw6p.js","/_next/static/chunks/07tm~3kwd6_~g.js"],"LandingFooter"]
+11:I[97367,["/_next/static/chunks/01xlw8hd842-c.js","/_next/static/chunks/0d3shmwh5_nmn.js"],"OutletBoundary"]
+12:"$Sreact.suspense"
+:HL["/_next/static/chunks/0impwln29qu1v.css","style"]
+5:T29bc,# DOMD
+
+[![npm version](https://img.shields.io/npm/v/@do-md/core-react.svg?style=flat-square&labelColor=2f2f2f&color=4493f8)](https://www.npmjs.com/package/@do-md/core-react)
+[![Core size](https://img.shields.io/badge/core%20Brotli-30%2B%20KB-5E81AC?style=flat-square&labelColor=2f2f2f)](https://www.npmjs.com/package/@do-md/core-react)
+
+**A WYSIWYG Markdown editor powered by a 30+ KB, from-scratch, Markdown-native engine.**
+
+Built for fast human editing, huge Markdown files, live synchronization, and streaming AI output.
+
+* 30+ KB after Brotli compression, with only React and Immer as runtime dependencies
+* Smooth editing and streaming through 20,000-line Markdown documents
+* Lockstep input and rendering: stable cursor, no lag, no flicker
+* Conflict-free offline and multi-device merging within a paragraph — not paragraph-level LWW
+* Real-time multi-editor synchronization with fine-grained merging and remote cursor presence
+* Native macOS app, Quick Look preview, local-first web editor, and agent-friendly CLI
+
+[**Try on Web**](https://www.domd.app/editor)
+
+Download for Mac: [Apple Silicon](https://github.com/do-md/domd/releases/latest/download/DOMD_aarch64.dmg) · [Intel](https://github.com/do-md/domd/releases/latest/download/DOMD_x86_64.dmg)
+
+English · [简体中文](./README.zh-CN.md) · [日本語](./README.ja.md)
+
+---
+
+## Editor kernel: `@do-md/core-react`
+
+[`@do-md/core-react`](https://www.npmjs.com/package/@do-md/core-react) is the Markdown-native editor kernel behind DOMD. It can be embedded independently in editors, inputs, collaborative workspaces, and AI interfaces. DOMD is a product built with the kernel, not the boundary of what the kernel can do.
+
+The demos linked below isolate individual kernel capabilities, so each one can be evaluated independently of the DOMD application.
+
+### Markdown-native by design
+
+WYSIWYG editing happens directly on Markdown. The Markdown document itself is the editing source of truth.
+
+The kernel is not built on ProseMirror, Slate, Lexical, or any general-purpose rich-text framework. Parsing, rendering, editing, undo/redo, streaming AI injection, and chunked file loading are all modeled as deterministic state changes inside the kernel.
+
+Rendering happens only where changes occur, and the entire editing stack stays just over 30 KB after Brotli compression.
+
+### Extensible inline syntax
+
+Most Markdown tools eventually hit the same wall: inline syntax is fixed. Highlights, mentions, comments, and wikilinks usually mean preprocessing the text, forking the parser, or falling back to raw HTML. In `@do-md/core-react` 0.6, inline syntax is a first-class extension point of the kernel itself.
+
+#### One grammar, from styling to semantics
+
+Parameters follow the Pandoc/Djot inline-attribute family — the closest thing extended Markdown has to a standard, and a convention shared by Pandoc, Quarto, kramdown, and markdown-it. The same grammar scales from a plain highlight to a fully attributed, typed span:
+
+```text
+==highlight==                              plain highlight
+=={red}highlight==                         tinted — a positional parameter
+=={.comment author="Alice"}highlight==     a semantic type with attributes
+```
+
+#### Syntax and semantics stay separate
+
+Delimiters carry no meaning of their own. A `.word` selects a **variant** — a semantic type registered as plain data — and the same variant can be attached to whichever delimiters fit your product:
+
+```text
+=={.mention id=1}Alice==   ≡   <{.mention id=1}Alice>
+```
+
+The Pandoc ecosystem established class-driven semantics as a convention, as in Quarto's `::: {.callout-note}`. The kernel turns that convention into a first-class declarative API. Unregistered types do not cause errors; they degrade gracefully into plain CSS hooks.
+
+#### Variants can become live React UI
+
+A variant can bind a React component. The editor passes it the parsed parameters and children, and the component renders inside the live document. An attribute such as `id` can act as a stable reference to an object in your product, turning a small piece of Markdown into live, interactive UI backed by application data: an issue card with an approval action, a weather widget that refreshes, a workflow control, or any other React experience.
+
+This makes an inline rule more than a styling hook — it can be an embedding surface for product features. A strict render contract keeps the caret, selection, and collaboration machinery safe while the component retains the full React model.
+
+### Conflict-free offline merge
+
+The kernel supports conflict-free merging within a paragraph instead of treating each paragraph as a single last-write-wins value. Two devices can edit different parts of the same paragraph offline, exchange their saved states later, and preserve both changes. Offline state exchange and real-time synchronization share the same CRDT foundation, but can be adopted independently.
+
+The editor kernel itself is CRDT-agnostic. It emits a structured operation stream for ordinary edits; an optional CRDT plugin observes that stream, translates each change into transactions on nested Yjs shared types, and maintains a mergeable `Y.Doc` replica. Yjs encodes that replica as document updates that can be persisted, transferred, and applied in any order. Because the CRDT boundary is an adapter around the operation stream, product and interaction code does not need to be rebuilt around Yjs: a completed editor feature can opt in by attaching the plugin.
+
+[**Try the split-screen CRDT merge playground**](https://www.domd.app/playground/crdt)
+
+### Real-time synchronization
+
+The kernel can keep multiple editors on the same Markdown document synchronized as they type. Fine-grained edits flow to other replicas, concurrent changes converge through Yjs, and remote cursor presence can travel alongside the content. Incoming changes are replayed only onto the affected nodes instead of replacing the document, preserving localized rendering during live editing.
+
+The kernel exposes three integration points for this path: `subscribeRenderDataOps` emits local editing operations, `applyExternalRenderDataOps` incrementally applies remote operations, and cursor snapshots and subscriptions expose presence data. The optional `realtime-sync` adapter translates between these APIs and nested Yjs shared types, providing a reusable synchronization, convergence, and presence layer. It is independent of business workflows and product state, so different editing products can adopt it without rewriting their input, history, or rendering systems.
+
+[**Try the real-time sync playground**](https://www.domd.app/playground/live)
+
+### Streaming
+
+AI models emit Markdown token by token, often splitting in the middle of syntax. The kernel ingests those streams chunk by chunk and renders them live.
+
+Open fences, half-built tables, and partial lists render correctly mid-stream, then absorb their real terminators without flicker when they arrive. Comfortable at any chunk size, through 20,000-line documents and beyond.
+
+[**Try the streaming playground**](https://www.domd.app/playground)
+
+### Markdown-native input
+
+The same kernel can be used as a Markdown-native input surface for comments, prompts, CMS fields, chat boxes, issue forms, or anywhere users write structured text.
+
+Markdown renders while typing, while the underlying value stays Markdown. For chat-style inputs, `Enter` can submit and `Shift + Enter` can insert a new line.
+
+[**Try the input playground**](https://www.domd.app/chat)
+
+---
+
+## DOMD product
+
+DOMD packages the kernel into a deliberately lean, local-first Markdown editor:
+
+* **Large files:** a 5 KB note and a 1 MB document open at virtually the same perceptual speed, with full WYSIWYG rendering rather than a plain-text view.
+* **Native macOS app:** a lightweight, ordinary-file workflow with Quick Look preview and no project tree, tabs, account, or bundled sync service. Download for [Apple Silicon](https://github.com/do-md/domd/releases/latest/download/DOMD_aarch64.dmg) or [Intel](https://github.com/do-md/domd/releases/latest/download/DOMD_x86_64.dmg).
+* **Local-first Web editor:** open the editor or drag in a `.md` file; processing stays on the device. [Try DOMD on the Web](https://www.domd.app/editor).
+* **Agent-friendly CLI:** `domd-cli` can open windows, stream content into a document, and rewrite selections, making DOMD a local Markdown rendering surface for agents and automation.
+
+Large-file editing in the macOS app:
+
+https://github.com/user-attachments/assets/d4cb6d94-6efe-4d5d-8a67-846be7f3cd45
+
+---
+
+## Development
+
+```bash
+npm install
+npm run dev
+```
+
+For native macOS development:
+
+```bash
+npm run tauri dev
+```
+
+Windows native builds are not currently supported.
+
+See [CONTRIBUTING.md](./CONTRIBUTING.md) for full setup and contribution notes.
+
+---
+
+## Licensing
+
+DOMD is a product-first project with two license layers:
+
+* **Application layer** — the macOS app, web app, helper libraries, and DOMD kernel plugins are open-source under the [MIT License](./LICENSE).
+* **Editor kernel** — the core engine lives in this repository at [`.packages/@do-md/core`](./.packages/@do-md/core) (published on npm as [`@do-md/core-react`](https://www.npmjs.com/package/@do-md/core-react)) and is licensed under **GPL-3.0** with two [additional permissions](./.packages/@do-md/core/LICENSE-EXCEPTIONS.md) granted under GPL section 7:
+
+  1. **Small entity exception** — non-profits and educational institutions, plus individuals and companies under USD 1M annual revenue and under USD 2M raised, may link the kernel into non-GPL software and ship it under terms of their choice.
+  2. **FOSS license exception** — projects under MIT, Apache-2.0, BSD, MPL-2.0, ISC, EPL-2.0 or zlib may link the kernel and ship the combined work under their own license.
+
+Because the app bundles the GPL kernel, any binary or web distribution of DOMD as a whole is conveyed under the GPL; the MIT-licensed application sources remain MIT on their own. Trying the kernel, building with it, and running it internally carry no obligations — GPL obligations attach when you ship it to users (and shipping a web app that loads it in the browser counts).
+
+Kernel versions up to and including 0.10.0 were published under the PolyForm Noncommercial 1.0.0 license; from 0.11.0 on, the kernel is GPL-3.0 with the exceptions above.
+
+For proprietary use beyond the exceptions, a commercial license is available — contact .
+
+---
+
+## Feedback and contributing
+
+* [GitHub Issues](https://github.com/do-md/domd/issues)
+* [GitHub Discussions](https://github.com/do-md/domd/discussions)
+* [Contributing guide](./CONTRIBUTING.md)6:T288d,# DOMD
+
+[![npm version](https://img.shields.io/npm/v/@do-md/core-react.svg?style=flat-square&labelColor=2f2f2f&color=4493f8)](https://www.npmjs.com/package/@do-md/core-react)
+[![Core size](https://img.shields.io/badge/core%20Brotli-30%2B%20KB-5E81AC?style=flat-square&labelColor=2f2f2f)](https://www.npmjs.com/package/@do-md/core-react)
+
+**DOMD 是一款所见即所得 Markdown 编辑器，基于 30 KB+ 的自研 Markdown 原生内核构建。**
+
+面向日常写作、大型 Markdown 文档、多人实时同步，以及 AI 内容的流式写入。
+
+* Brotli 压缩后 30 KB+，运行时只依赖 React 和 Immer
+* 20,000 行 Markdown 文档也能顺滑编辑、流式写入
+* 输入和渲染同步完成：光标稳定，无明显延迟、无闪烁
+* 支持段落内细粒度的离线、多端无冲突合并，不是段落级 LWW
+* 支持多编辑器实时同步、细粒度无冲突合并和远端光标
+* 提供原生 macOS 应用、Quick Look 预览、本地优先 Web 编辑器，以及面向 agent 的 CLI
+
+[**在线试用**](https://www.domd.app/editor)
+
+下载 macOS 版本：[Apple Silicon](https://github.com/do-md/domd/releases/latest/download/DOMD_aarch64.dmg) · [Intel](https://github.com/do-md/domd/releases/latest/download/DOMD_x86_64.dmg)
+
+[English](./README.md) · 简体中文 · [日本語](./README.ja.md)
+
+---
+
+## 编辑器内核：`@do-md/core-react`
+
+[`@do-md/core-react`](https://www.npmjs.com/package/@do-md/core-react) 是 DOMD 背后的 Markdown 原生编辑器内核，也可以独立嵌入编辑器、输入框、协作空间和 AI 界面。DOMD 是基于这套内核构建的产品，但不是内核能力的边界。
+
+下方演示会分别隔离一项内核能力，因此无需依赖 DOMD 应用，也可以独立理解和验证每条能力链路。
+
+### Markdown 原生架构
+
+所见即所得编辑直接发生在 Markdown 之上，Markdown 文档本身就是编辑状态的唯一来源。
+
+内核没有基于 ProseMirror、Slate、Lexical 这类通用富文本框架构建。解析、渲染、编辑、撤销/重做、AI 流式写入、分块文件加载，都会在内核中被建模为确定性的状态变化。
+
+内容变化时，内核只渲染真正发生变化的部分。整套编辑栈经过 Brotli 压缩后仅 30 KB+。
+
+### 可扩展的行内语法
+
+Markdown 工具最终大多会遇到同一道墙：行内语法是固定的。想加入高亮、提及、评论或双链，通常只能预处理文本、fork 解析器，或者拼接原始 HTML。从 `@do-md/core-react` 0.6 开始，行内语法成为内核自身的一等扩展点。
+
+#### 一套语法，从样式扩展到语义
+
+参数沿用 Pandoc/Djot 的行内属性语法家族——这是扩展 Markdown 最接近标准的约定，Pandoc、Quarto、kramdown 和 markdown-it 都采用了相近的形式。同一套语法可以从简单高亮平滑扩展到带完整属性和类型的 span：
+
+```text
+==highlight==                              普通高亮
+=={red}highlight==                         带颜色——位置参数
+=={.comment author="Alice"}highlight==     语义类型及其属性
+```
+
+#### 语法与语义彼此独立
+
+分隔符本身不携带含义。`.word` 用来选择一个 **variant**，也就是以纯数据注册的语义类型；同一个 variant 可以绑定到产品所需的任意分隔符：
+
+```text
+=={.mention id=1}Alice==   ≡   <{.mention id=1}Alice>
+```
+
+Pandoc 生态已经把 class 驱动的语义建立为一种约定，例如 Quarto 的 `::: {.callout-note}`。内核进一步把这套约定变成一等的声明式 API。未注册的类型不会报错，而会自然降级为普通的 CSS hook。
+
+#### Variant 可以成为实时交互界面
+
+Variant 可以绑定 React 组件。编辑器会把解析后的参数和 children 传给组件，由组件直接在实时文档中渲染。像 `id` 这样的属性可以稳定关联产品中的业务对象，让一小段 Markdown 成为由应用数据驱动的实时交互界面：带审批操作的事项卡片、自动刷新的天气组件、工作流控制项，或任何其他 React 交互体验。
+
+因此，行内规则不只是样式 hook，也可以成为产品功能嵌入文档的界面。严格的渲染契约会保护光标、选区和协作机制，同时组件仍然拥有 React 的完整能力。
+
+### 段落内离线无冲突合并
+
+内核支持段落内的细粒度无冲突合并，而不是把整段内容作为一个 LWW 值。两台设备可以离线修改同一段落中的不同位置，之后交换已保存的状态，双方修改都能保留下来。离线状态交换和实时同步共享同一套 CRDT 基础，也可以彼此独立地接入。
+
+编辑器内核本身无需感知 CRDT。内核只输出常规编辑产生的结构化操作流；可选的 CRDT 插件监听这条操作流，把每次变化转换为嵌套 Yjs shared types 上的 transaction，并维护一个可合并的 `Y.Doc` 副本。Yjs 再把副本编码成可持久化、可传输、可按任意顺序应用的 document updates。由于 CRDT 边界只是操作流外的一层 adapter，业务层和交互层无需围绕 Yjs 重写：功能开发完成后，接入这个轻量插件即可获得段落内细粒度的 CRDT 合并能力。
+
+[**试试双编辑器 CRDT 合并 Playground**](https://www.domd.app/playground/crdt)
+
+### 实时同步
+
+内核可以让多个编辑器实时同步同一份 Markdown。细粒度编辑会传播到其他副本，并发修改通过 Yjs 自动收敛，远端光标也可以随内容一起同步。收到变化时，内核不会替换整篇文档，而是只在真正受影响的节点上回放操作，因此实时编辑仍然保持局部渲染的性能特征。
+
+内核为这条链路提供三个接入点：`subscribeRenderDataOps` 输出本地编辑操作，`applyExternalRenderDataOps` 增量应用远端操作，光标快照和订阅接口则提供 presence 数据。可选的 `realtime-sync` adapter 会在这些接口与嵌套的 Yjs shared types 之间双向翻译，形成可复用的同步、收敛和 presence 层。它独立于业务流程和产品状态，不同形态的编辑产品都可以接入，而无需重写各自的输入、历史记录或渲染系统。
+
+[**试试实时同步 Playground**](https://www.domd.app/playground/live)
+
+### 流式写入
+
+AI 模型通常会一段一段输出 Markdown，而且经常会把语法切在中间。
+
+内核可以按 chunk 接收这些内容，并在写入过程中实时渲染。
+
+未闭合的代码块、还没完成的表格、写到一半的列表，都可以在流式过程中正确显示。等真正的结束符到达时，内容会自然合并，不会闪烁，也不需要整篇重渲染。
+
+内核对 chunk 大小不敏感，即使在 20,000 行文档里持续流式写入，也能保持顺滑。
+
+[**试试流式写入 Playground**](https://www.domd.app/playground)
+
+### Markdown 原生输入框
+
+同一套内核也可以作为 Markdown 原生输入框使用，适合评论框、Prompt 输入框、CMS 字段、聊天输入框、Issue 表单，以及任何需要结构化文本输入的地方。
+
+用户输入 Markdown 时，内容会实时渲染成所见即所得效果，但底层 value 仍然保持为 Markdown。
+
+在聊天输入场景中，可以用 `Enter` 提交，用 `Shift + Enter` 换行。
+
+[**试试输入框 Playground**](https://www.domd.app/chat)
+
+---
+
+## DOMD 产品
+
+DOMD 把上述内核能力封装成一款克制、轻量、本地优先的 Markdown 编辑器：
+
+* **大文件编辑：**打开 5 KB 笔记和 1 MB 文档的感知速度几乎没有区别，并且始终是完整的所见即所得渲染，而不是纯文本视图。
+* **原生 macOS 应用：**采用普通文件工作流，提供 Quick Look 预览，没有项目树、标签页、账号或内置同步服务。下载 [Apple Silicon](https://github.com/do-md/domd/releases/latest/download/DOMD_aarch64.dmg) 或 [Intel](https://github.com/do-md/domd/releases/latest/download/DOMD_x86_64.dmg) 版本。
+* **本地优先 Web 编辑器：**打开网页或直接拖入 `.md` 文件即可编辑，处理始终留在本机。[在线试用 DOMD](https://www.domd.app/editor)。
+* **面向 Agent 的 CLI：**`domd-cli` 支持打开窗口、向文档流式写入内容和改写选区，让 DOMD 可以作为 agent 与自动化工具的本地 Markdown 渲染界面。
+
+macOS 应用的大文件编辑演示：
+
+https://github.com/user-attachments/assets/d4cb6d94-6efe-4d5d-8a67-846be7f3cd45
+
+---
+
+## 开发
+
+```bash
+npm install
+npm run dev
+```
+
+开发原生 macOS 应用：
+
+```bash
+npm run tauri dev
+```
+
+目前暂不支持 Windows 原生构建。
+
+完整开发和贡献说明见 [CONTRIBUTING.md](./CONTRIBUTING.md)。
+
+---
+
+## License
+
+DOMD 是一个产品优先的项目，许可证分为两层：
+
+* **应用层** — macOS 应用、Web 应用、辅助库和 DOMD 内核插件，均以 [MIT License](./LICENSE) 开源。
+* **编辑器内核** — 核心引擎的源码就在本仓库的 [`.packages/@do-md/core`](./.packages/@do-md/core)（npm 包名 [`@do-md/core-react`](https://www.npmjs.com/package/@do-md/core-react)），采用 **GPL-3.0**，并依 GPL 第 7 条授予两条[附加许可](./.packages/@do-md/core/LICENSE-EXCEPTIONS.md)：
+
+  1. **小型主体例外** — 非营利组织与教育机构，以及年营收低于 100 万美元且累计融资低于 200 万美元的个人与公司，可以把内核链接进非 GPL 软件，并按自选条款发布。
+  2. **FOSS 许可证例外** — 采用 MIT、Apache-2.0、BSD、MPL-2.0、ISC、EPL-2.0 或 zlib 的项目，可以链接内核并按其自身许可证发布组合作品。
+
+由于应用打包了 GPL 内核，DOMD 整体的二进制分发或 Web 部署作为一个整体按 GPL 传递；MIT 授权的应用层源文件本身仍是 MIT。试用内核、拿它开发、在组织内部运行都不产生任何义务——GPL 义务在你把它分发给用户时才产生（把内核加载进浏览器的 Web 应用上线也算分发）。
+
+内核 0.10.0 及更早版本按 PolyForm Noncommercial 1.0.0 许可证发布；自 0.11.0 起，内核为 GPL-3.0 加上述例外。
+
+超出例外范围的专有用途，可获取商业许可，请联系 。
+
+---
+
+## 反馈与贡献
+
+* [GitHub Issues](https://github.com/do-md/domd/issues)
+* [GitHub Discussions](https://github.com/do-md/domd/discussions)
+* [Contributing guide](./CONTRIBUTING.md)7:T39c3,# DOMD
+
+[![npm version](https://img.shields.io/npm/v/@do-md/core-react.svg?style=flat-square&labelColor=2f2f2f&color=4493f8)](https://www.npmjs.com/package/@do-md/core-react)
+[![Core size](https://img.shields.io/badge/core%20Brotli-30%2B%20KB-5E81AC?style=flat-square&labelColor=2f2f2f)](https://www.npmjs.com/package/@do-md/core-react)
+
+**DOMD は、30 KB 超の自前 Markdown ネイティブエンジンで動作する WYSIWYG Markdown エディタです。**
+
+日常的な編集、大きな Markdown ファイル、ライブ同期、そして AI によるストリーミング出力のために作られています。
+
+* Brotli 圧縮後で 30 KB 超。ランタイム依存は React と Immer のみ
+* 20,000 行規模の Markdown 文書でも、編集とストリーミング書き込みをスムーズに処理
+* 入力とレンダリングが同期して動作：カーソルは安定し、遅延やちらつきを抑制
+* 段落単位の LWW ではなく、段落内の細粒度でオフライン・複数デバイス間の競合なしマージに対応
+* 細粒度の競合なしマージとリモートカーソルに対応した、複数エディタ間のリアルタイム同期
+* ネイティブ macOS アプリ、Quick Look プレビュー、ローカル優先の Web エディタ、agent 向け CLI を提供
+
+[**Web で試す**](https://www.domd.app/editor) 
+
+macOS 版をダウンロード：[Apple Silicon](https://github.com/do-md/domd/releases/latest/download/DOMD_aarch64.dmg) · [Intel](https://github.com/do-md/domd/releases/latest/download/DOMD_x86_64.dmg)
+
+[English](./README.md) · [简体中文](./README.zh-CN.md) · 日本語
+
+---
+
+## エディタカーネル：`@do-md/core-react`
+
+[`@do-md/core-react`](https://www.npmjs.com/package/@do-md/core-react) は DOMD を支える Markdown ネイティブのエディタカーネルです。エディタ、入力 UI、コラボレーションワークスペース、AI インターフェースへ単独で組み込むこともできます。DOMD はこのカーネルで構築された一つのプロダクトであり、カーネルの可能性を限定するものではありません。
+
+以下のデモではカーネル機能を一つずつ切り分けているため、DOMD アプリケーションとは独立して各機能を確認できます。
+
+### Markdown ネイティブ設計
+
+WYSIWYG 編集は Markdown そのものの上で動作し、Markdown 文書自体が編集状態の唯一の source of truth になります。
+
+カーネルは ProseMirror、Slate、Lexical のような汎用リッチテキストフレームワークの上には構築されていません。パース、レンダリング、編集、undo / redo、AI ストリーミング挿入、チャンク単位のファイル読み込みは、すべてカーネル内の決定的な状態変化として扱われます。
+
+変更が発生したときは実際に変わった部分だけをレンダリングします。編集スタック全体は、Brotli 圧縮後でも 30 KB を少し超える程度です。
+
+### 拡張可能なインライン構文
+
+ほとんどの Markdown ツールは、いずれ同じ壁に突き当たります。インライン構文が固定されていることです。ハイライト、メンション、コメント、Wiki リンクを追加しようとすると、一般的にはテキストの前処理、パーサーの fork、または生の HTML が必要になります。`@do-md/core-react` 0.6 から、インライン構文はカーネル自体の第一級の拡張ポイントになりました。
+
+#### スタイルからセマンティクスまで、一つの文法で
+
+パラメータは Pandoc/Djot のインライン属性構文ファミリーに準拠しています。これは拡張 Markdown において標準に最も近い慣習であり、Pandoc、Quarto、kramdown、markdown-it でも同様の形式が使われています。同じ文法で、単純なハイライトから、属性と型を備えた span まで自然に拡張できます。
+
+```text
+==highlight==                              通常のハイライト
+=={red}highlight==                         色付き——位置パラメータ
+=={.comment author="Alice"}highlight==     属性を持つセマンティック型
+```
+
+#### 構文とセマンティクスを分離
+
+区切り文字そのものは意味を持ちません。`.word` は、プレーンなデータとして登録されたセマンティック型である **variant** を選択します。同じ variant を、プロダクトに適した任意の区切り文字へ割り当てられます。
+
+```text
+=={.mention id=1}Alice==   ≡   <{.mention id=1}Alice>
+```
+
+Pandoc エコシステムは、Quarto の `::: {.callout-note}` のような class 駆動のセマンティクスを慣習として定着させました。カーネルはその慣習を第一級の宣言的 API にします。未登録の型もエラーにはならず、通常の CSS hook として自然にフォールバックします。
+
+#### Variant をライブなインタラクティブ UI に
+
+Variant には React コンポーネントを紐付けられます。エディタはパース済みのパラメータと children をコンポーネントへ渡し、コンポーネントはライブ文書内に直接レンダリングされます。`id` のような属性をプロダクト内のオブジェクトへの安定した参照として使えば、わずかな Markdown をアプリケーションデータと連動するインタラクティブ UI に変えられます。承認操作を備えた課題カード、自動更新される天気ウィジェット、ワークフローの操作項目など、React で表現できるあらゆる体験を埋め込めます。
+
+つまり、インラインルールは単なるスタイル用 hook ではなく、プロダクト機能を文書へ組み込むためのサーフェスにもなります。厳格なレンダリング契約がキャレット、選択範囲、コラボレーション機構を保護しつつ、コンポーネントは React の機能を最大限に利用できます。
+
+### オフラインで競合なくマージ
+
+カーネルは段落全体を単一の LWW 値として扱うのではなく、段落内の細粒度で競合なくマージできます。2 台のデバイスが同じ段落の異なる部分をオフラインで編集しても、後から保存済みの状態を交換すれば、両方の変更を保持できます。オフラインの状態交換とリアルタイム同期は同じ CRDT 基盤を共有しながら、それぞれ独立して導入できます。
+
+エディタカーネル自体は CRDT を意識しません。カーネルは通常の編集から構造化された操作ストリームを出力し、オプションの CRDT プラグインがそれを監視します。プラグインは各変更をネストされた Yjs shared types 上の transaction に変換し、マージ可能な `Y.Doc` レプリカを維持します。Yjs はそのレプリカを、永続化・転送でき、任意の順序で適用可能な document updates としてエンコードします。CRDT の境界は操作ストリームを包む adapter に限定されるため、プロダクト層やインタラクション層を Yjs 前提で作り直す必要はありません。通常の機能を完成させた後、この軽量なプラグインを接続するだけで、段落内の細粒度 CRDT マージを追加できます。
+
+[**2 画面の CRDT Merge Playground を試す**](https://www.domd.app/playground/crdt)
+
+### リアルタイム同期
+
+カーネルは、複数のエディタで同じ Markdown 文書をリアルタイムに同期できます。細粒度の編集はほかのレプリカへ伝播し、同時変更は Yjs によって収束し、リモートカーソルも内容とともに同期できます。受信した変更は文書全体を置き換えるのではなく、実際に影響を受けたノードだけでリプレイされるため、ライブ編集でも局所レンダリング特性が保たれます。
+
+カーネルは、この同期経路のために 3 つの接続点を公開します。`subscribeRenderDataOps` はローカル編集操作を出力し、`applyExternalRenderDataOps` はリモート操作を増分適用し、カーソルのスナップショットと購読 API は presence データを提供します。オプションの `realtime-sync` adapter は、これらの API とネストした Yjs shared types の間を双方向に変換し、再利用可能な同期・収束・presence レイヤーを構成します。業務フローや製品状態から独立しているため、異なる形の編集製品でも独自の入力、履歴、レンダリングシステムを書き直すことなく導入できます。
+
+[**Real-time Sync Playground を試す**](https://www.domd.app/playground/live)
+
+### ストリーミング書き込み
+
+AI モデルは Markdown を少しずつ出力します。しかも、構文の途中で分割されることもよくあります。
+
+カーネルはそうした出力を chunk 単位で受け取り、その場でリアルタイムにレンダリングできます。
+
+閉じられていないコードブロック、途中まで書かれたテーブル、未完成のリストも、ストリーミング中に自然に表示されます。実際の終端が届いたときも、内容はそのまま吸収され、ちらつきや全文再レンダリングは発生しません。
+
+カーネルは chunk の大きさに依存しません。20,000 行の文書に対して継続的にストリーミング書き込みを行っても、滑らかな操作感を保ちます。
+
+[**Streaming Playground を試す**](https://www.domd.app/playground)
+
+### Markdown ネイティブ入力
+
+同じカーネルを Markdown ネイティブな入力 UI として利用することもできます。
+
+コメント欄、Prompt 入力欄、CMS フィールド、チャット入力、Issue フォームなど、構造化されたテキスト入力が必要な場所に向いています。
+
+ユーザーが Markdown を入力すると、内容はリアルタイムに WYSIWYG 表示されます。一方で、内部の value は Markdown のまま保持されます。
+
+チャット風の入力では、`Enter` で送信し、`Shift + Enter` で改行するような挙動にも対応できます。
+
+[**Input Playground を試す**](https://www.domd.app/chat)
+
+---
+
+## DOMD プロダクト
+
+DOMD は、上記のカーネル機能を意図的にシンプルで軽量な、ローカル優先の Markdown エディタとして提供します。
+
+* **大きなファイルの編集：**5 KB のメモと 1 MB の文書をほぼ同じ体感速度で開き、プレーンテキスト表示ではなく完全な WYSIWYG レンダリングを維持します。
+* **ネイティブ macOS アプリ：**Quick Look プレビューに対応した通常のファイルワークフローで、プロジェクトツリー、タブ、アカウント、内蔵同期サービスはありません。[Apple Silicon](https://github.com/do-md/domd/releases/latest/download/DOMD_aarch64.dmg) または [Intel](https://github.com/do-md/domd/releases/latest/download/DOMD_x86_64.dmg) 版をダウンロードできます。
+* **ローカル優先の Web エディタ：**ブラウザで開くか `.md` ファイルをドラッグするだけで編集でき、処理はデバイス上に留まります。[Web で DOMD を試す](https://www.domd.app/editor)。
+* **Agent 向け CLI：**`domd-cli` はウィンドウを開く、文書へストリーミング書き込みする、選択範囲を書き換えるといった操作に対応し、agent や自動化ツールのローカル Markdown レンダリングサーフェスとして利用できます。
+
+macOS アプリでの大きなファイル編集：
+
+https://github.com/user-attachments/assets/d4cb6d94-6efe-4d5d-8a67-846be7f3cd45
+
+---
+
+## 開発
+
+```bash
+npm install
+npm run dev
+```
+
+ネイティブ macOS アプリを開発する場合：
+
+```bash
+npm run tauri dev
+```
+
+現在、Windows のネイティブビルドには対応していません。
+
+詳しいセットアップとコントリビューション方法は [CONTRIBUTING.md](./CONTRIBUTING.md) を参照してください。
+
+---
+
+## License
+
+DOMD は product-first なプロジェクトで、ライセンスは 2 層構成です。
+
+* **アプリケーション層** — macOS アプリ、Web アプリ、補助ライブラリ、DOMD カーネルプラグインは、すべて [MIT License](./LICENSE) のもとでオープンソースとして公開されています。
+* **エディタカーネル** — コアエンジンのソースコードは本リポジトリの [`.packages/@do-md/core`](./.packages/@do-md/core) にあり（npm では [`@do-md/core-react`](https://www.npmjs.com/package/@do-md/core-react) として公開）、**GPL-3.0** に GPL 第 7 条にもとづく 2 つの[追加許可](./.packages/@do-md/core/LICENSE-EXCEPTIONS.md)を加えたライセンスです。
+
+  1. **小規模事業者の例外** — 非営利組織・教育機関、および年間売上 100 万米ドル未満かつ累計調達額 200 万米ドル未満の個人・企業は、カーネルを非 GPL ソフトウェアに組み込み、任意の条件で配布できます。
+  2. **FOSS ライセンスの例外** — MIT、Apache-2.0、BSD、MPL-2.0、ISC、EPL-2.0、zlib のプロジェクトは、カーネルを組み込んだ成果物を自身のライセンスのまま配布できます。
+
+アプリは GPL のカーネルを同梱しているため、DOMD 全体のバイナリ配布や Web 配信は全体として GPL のもとで行われます。MIT の各アプリケーションソースファイル自体は MIT のままです。カーネルの試用・開発・組織内での利用に義務は生じません。GPL の義務が生じるのはユーザーへ配布した時点です（カーネルをブラウザに読み込ませる Web アプリの公開も配布に含まれます）。
+
+カーネルのバージョン 0.10.0 までは PolyForm Noncommercial 1.0.0 ライセンスで公開されていました。0.11.0 以降は、上記の例外つき GPL-3.0 です。
+
+例外の範囲を超える商用利用については、商用ライセンスを用意しています。 までお問い合わせください。
+
+---
+
+## フィードバックとコントリビューション
+
+* [GitHub Issues](https://github.com/do-md/domd/issues)
+* [GitHub Discussions](https://github.com/do-md/domd/discussions)
+* [Contributing guide](./CONTRIBUTING.md)0:{"rsc":["$","$1","c",{"children":[["$","div",null,{"className":"min-h-screen flex flex-col bg-base-100 text-base-content","children":[["$","script",null,{"type":"application/ld+json","dangerouslySetInnerHTML":{"__html":"{\"@context\":\"https://schema.org\",\"@type\":\"SoftwareApplication\",\"name\":\"DOMD\",\"applicationCategory\":\"DeveloperApplication\",\"applicationSubCategory\":\"Markdown editor\",\"operatingSystem\":\"macOS, Web\",\"description\":\"DOMD is a WYSIWYG editor built on a from-scratch, Markdown-native rendering engine. 30+ KB gzipped kernel — no account, no cloud, files stay on your device.\",\"url\":\"https://www.domd.app\",\"downloadUrl\":\"https://github.com/do-md/domd/releases/latest\",\"softwareHelp\":\"https://github.com/do-md/domd\",\"offers\":{\"@type\":\"Offer\",\"price\":\"0\",\"priceCurrency\":\"USD\"},\"featureList\":[\"WYSIWYG editing directly on Markdown\",\"30+ KB from-scratch Markdown-native engine\",\"Real-time AI Markdown streaming\",\"Smooth editing through 20,000-line documents\",\"Native macOS app with Quick Look preview\",\"Local-first — no account, no cloud\"]}"}}],["$","$L2",null,{}],["$","$L3",null,{}],["$","main",null,{"className":"flex-1","children":["$","section",null,{"className":"max-w-3xl mx-auto px-6 py-4","children":["$","$L4",null,{"streams":{"en":"$5","zh":"$6","ja":"$7"}}]}]}],"$L8"]}],["$L9","$La","$Lb","$Lc","$Ld","$Le"],"$Lf"]}],"isPartial":false,"staleTime":300,"varyParams":null,"buildId":"KDQlLAE9gU-Z7z_na8OR7"}
+8:["$","$L10",null,{"year":2026}]
+9:["$","link","0",{"rel":"stylesheet","href":"/_next/static/chunks/0impwln29qu1v.css","precedence":"next"}]
+a:["$","script","script-0",{"src":"/_next/static/chunks/0zrv6s8pw28rd.js","async":true}]
+b:["$","script","script-1",{"src":"/_next/static/chunks/0o2qzpnrkc_7h.js","async":true}]
+c:["$","script","script-2",{"src":"/_next/static/chunks/0hz~w0zuwuar5.js","async":true}]
+d:["$","script","script-3",{"src":"/_next/static/chunks/0we2jzv7udw6p.js","async":true}]
+e:["$","script","script-4",{"src":"/_next/static/chunks/07tm~3kwd6_~g.js","async":true}]
+f:["$","$L11",null,{"children":["$","$12",null,{"name":"Next.MetadataOutlet","children":"$@13"}]}]
+13:null
